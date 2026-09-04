@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Katálogo 3D</title>
+  <style>
+    /* Estilos base */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f8f9fa;
+      color: #333;
+    }
+
+    /* Encabezado oscuro con franja naranja */
+    .header {
+      background-color: #1a2530;
+      color: white;
+      text-align: center;
+      padding: 24px 20px;
+      border-bottom: 4px solid #e67e22;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0.5px;
+    }
+    .header p {
+      margin: 8px 0 0;
+      font-size: 11px;
+      color: #cbd5e1;
+    }
+
+    /* Contenedor principal */
+    .catalog-container {
+      padding: 16px;
+      max-width: 600px; /* Ancho ideal para simular vista móvil/tablet */
+      margin: 0 auto;
+    }
+
+    /* Títulos de sección con la línea naranja */
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin: 24px 0 16px;
+      display: flex;
+      align-items: center;
+      color: #2c3e50;
+    }
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 16px;
+      background-color: #e67e22;
+      margin-right: 8px;
+    }
+
+    /* Cuadrícula de 2 columnas (como en tu PDF) */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    /* Tarjetas de producto */
+    .card {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+    }
+    .card-img {
+      width: 100%;
+      height: 110px;
+      object-fit: cover;
+      background-color: #ecf0f1;
+    }
+    .card-body {
+      padding: 12px;
+      flex-grow: 1;
+    }
+    .card-title {
+      color: #0073B7; /* Azul similar al de tu diseño */
+      font-size: 12px;
+      font-weight: 600;
+      margin: 0 0 6px;
+      line-height: 1.2;
+    }
+    .card-desc {
+      font-size: 10px;
+      color: #7f8c8d;
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    /* Pie de página */
+    .footer {
+      text-align: center;
+      padding: 30px 20px;
+      font-size: 10px;
+      color: #95a5a6;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <h1>Katálogo</h1>
+    <p>Decoración, regalos y diseños originales bajo pedido</p>
+  </header>
+
+  <main class="catalog-container" id="catalog-container">
+    <p style="text-align: center; color: #7f8c8d; font-size: 12px;">Cargando modelos populares desde Thingiverse...</p>
+  </main>
+
+  <footer class="footer">
+    Hechos a la medida en Cortazar, Gto.<br>
+    Pregunta por colores, tamaños y personalizaciones.
+  </footer>
+
+  <script>
+    // ⚠️ REEMPLAZA ESTO CON TU TOKEN REAL DE THINGIVERSE ⚠️
+    const APP_TOKEN = '8fab840bf0dba2ec3b13e88831ee1aff'; 
+
+    async function cargarPopulares() {
+      try {
+        // Hacemos la petición al buscador ordenando por popularidad
+        const response = await fetch('https://api.thingiverse.com/search/?sort=popular&per_page=8', {
+          headers: {
+            'Authorization': `Bearer ${APP_TOKEN}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) throw new Error('Error al conectar con la API');
+
+        const data = await response.json();
+        const modelos = data.hits || [];
+
+        renderizarCatalogo(modelos);
+      } catch (error) {
+        console.error(error);
+        document.getElementById('catalog-container').innerHTML = 
+          '<p style="text-align:center; color:red; font-size:12px;">Error al cargar. Revisa que tu App Token sea válido.</p>';
+      }
+    }
+
+    function renderizarCatalogo(modelos) {
+      const contenedor = document.getElementById('catalog-container');
+      contenedor.innerHTML = ''; // Limpiar mensaje de carga
+
+      // Para imitar las divisiones de tu diseño, cortamos los resultados en dos secciones
+      const seccion1 = modelos.slice(0, 4);
+      const seccion2 = modelos.slice(4, 8);
+
+      contenedor.appendChild(crearSeccion('🔥 Top Descargas Globales', seccion1));
+      contenedor.appendChild(crearSeccion('⭐ Tendencias de la Semana', seccion2));
+    }
+
+    function crearSeccion(tituloTexto, modelos) {
+      const seccion = document.createElement('div');
+
+      const titulo = document.createElement('div');
+      titulo.className = 'section-title';
+      titulo.textContent = tituloTexto;
+      seccion.appendChild(titulo);
+
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+
+      modelos.forEach(modelo => {
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        const img = document.createElement('img');
+        img.className = 'card-img';
+        img.src = modelo.thumbnail; // Imagen extraída de la API
+        img.alt = modelo.name;
+
+        const body = document.createElement('div');
+        body.className = 'card-body';
+
+        const nombre = document.createElement('h3');
+        nombre.className = 'card-title';
+        // Cortamos el nombre si es muy largo para que no rompa el diseño
+        nombre.textContent = modelo.name.length > 35 ? modelo.name.substring(0, 35) + '...' : modelo.name;
+
+        const creador = document.createElement('p');
+        creador.className = 'card-desc';
+        creador.textContent = `Diseñado por ${modelo.creator.name}`;
+
+        body.appendChild(nombre);
+        body.appendChild(creador);
+        card.appendChild(img);
+        card.appendChild(body);
+        grid.appendChild(card);
+      });
+
+      seccion.appendChild(grid);
+      return seccion;
+    }
+
+    // Iniciar la carga al abrir la página
+    cargarPopulares();
+  </script>
+
+</body>
+</html>
